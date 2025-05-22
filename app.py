@@ -18,9 +18,9 @@ app.config['plantas'] = os.path.join(os.path.dirname(__file__), 'static', 'imgs'
 # Función para conectar a la base de datos
 def get_connection():
     return mysql.connector.connect(
-        host='localhost',
-        user='root',
-        password='',
+        host='bdyuri.cpikeig8qwsl.us-east-1.rds.amazonaws.com',
+        user='admin',
+        password='23072208aaA',
         database='bdplantas'
     )
 
@@ -105,7 +105,7 @@ def registrar_planta():
     try:
         conn = get_connection()
         cursor = conn.cursor(dictionary=True)
-        cursor.execute("SELECT nomFamilia FROM familiasPlantas")
+        cursor.execute("SELECT nomFamilia FROM familiasplantas")
         familias = [row['nomFamilia'] for row in cursor.fetchall()]
         print(familias) 
     finally:
