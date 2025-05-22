@@ -1,0 +1,76 @@
+body {
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+  background: #121212;
+  color: #e0e0e0;
+}
+
+h1 {
+  text-shadow: 0 0 10px #ffc107, 0 0 20px #ff9800;
+  letter-spacing: 2px;
+}
+
+.plantas-container {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 24px;
+}
+
+/* Tamaño fijo para las tarjetas */
+.planta-card {
+  background: linear-gradient(145deg, #1f1f1f, #292929);
+  border: 2px solid #ffb300;
+  width: 230px;
+  height: 340px; /* Altura fija para que todas sean iguales */
+  padding: 15px;
+  text-align: center;
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
+  cursor: pointer;
+  user-select: none;
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-start;
+  overflow: hidden;
+  box-sizing: border-box;
+}
+
+.planta-card:hover {
+  transform: scale(1.05);
+  box-shadow: 0 0 15px #ffb300, 0 0 30px #ffc107;
+}
+
+.planta-img {
+  width: 100%;
+  height: 160px; /* altura fija */
+  object-fit: cover;
+  border-radius: 8px;
+  border: 1px solid #ffb300;
+  box-shadow: 0 0 8px #ffb300;
+  flex-shrink: 0;
+}
+
+/* El contenedor de texto ocupa el resto del espacio */
+.nombre-cientifico {
+  font-weight: 700;
+  font-style: italic;
+  font-size: 1.1rem;
+  color: #ffc107;
+  text-shadow: 0 0 5px #ffb300;
+  margin-top: 12px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.nombres-comunes {
+  font-size: 0.9rem;
+  color: #ddd;
+  opacity: 0.8;
+  margin-top: 8px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  display: -webkit-box;
+  -webkit-line-clamp: 3; /* Máximo 3 líneas */
+  -webkit-box-orient: vertical;
+  min-height: 54px; /* espacio para 3 líneas */
+}
