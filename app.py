@@ -1,4 +1,4 @@
-
+import requests
 from flask import Flask, request, jsonify, render_template
 from flask_cors import CORS
 from werkzeug.utils import secure_filename
@@ -8,12 +8,77 @@ import os
 app = Flask(__name__)
 CORS(app)
 
+PLANTNET_API_KEY = '2b10Q1pjh95QnKNGhW1eXZLO'
+PLANTNET_API_URL = f"https://my-api.plantnet.org/v2/identify/all?api-key={PLANTNET_API_KEY}&lang=es&include-related-images=true"
+IA_UPLOAD_FOLDER = os.path.join(os.path.dirname(__file__), 'static', 'uploads', 'identificador_ia')
+os.makedirs(IA_UPLOAD_FOLDER, exist_ok=True)
+
 # Configuración de carpeta para subir imágenes
-UPLOAD_FOLDER = os.path.join(os.path.dirname(__file__), 'static', 'uploads')
+UPLOAD_FOLDER = os.path.join(os.path.dirname(__file__), 'subidas')
 
 os.makedirs(UPLOAD_FOLDER, exist_ok=True)
 app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
 app.config['plantas'] = os.path.join(os.path.dirname(__file__), 'static', 'imgs','plantas')
+
+######################
+def allowed_file(filename):
+    return '.' in filename and filename.rsplit('.', 1)[1].lower() in {'png', 'jpg', 'jpeg'}
+
+@app.route('/identificar_ia', methods=['GET', 'POST'])
+def identificar_ia():
+    if request.method == 'POST':
+        if 'image' not in request.files:
+            return jsonify({'error': 'No se proporcionó imagen'}), 400
+        file = request.files['image']
+
+        if file.filename == '' or not allowed_file(file.filename):
+            return jsonify({'error': 'Archivo no válido'}), 400
+
+        filename = secure_filename(file.filename)
+        filepath = os.path.join(IA_UPLOAD_FOLDER, filename)
+        file.save(filepath)
+
+        with open(filepath, 'rb') as img:
+            files = {'images': img}
+            data = {'organs': request.form.get('organ', 'leaf')}
+
+            try:
+                response = requests.post(PLANTNET_API_URL, files=files, data=data)
+                response.raise_for_status()
+                result = response.json()
+
+                if not result["results"]:
+                    return jsonify({'message': 'No se encontraron coincidencias'})
+
+                top = result["results"][0]
+                species = top["species"]
+                images = top.get("images", [])
+
+                image_urls = []
+                for i, img_data in enumerate(images[:1]):
+                    url = img_data.get("url")
+                    if url:
+                        specific_url = url.get("m")
+                        if specific_url:
+                            image_urls.append(specific_url)
+
+                return jsonify({
+                    'identifiedOrgan': images[0].get("organ") if images else 'Desconocido',
+                    'scientificName': species.get("scientificNameWithoutAuthor", "Desconocido"),
+                    'authorship': species.get("scientificNameAuthorship", ""),
+                    'commonNames': species.get("commonNames", []),
+                    'genus': species.get("genus", {}).get("scientificNameWithoutAuthor", ""),
+                    'family': species.get("family", {}).get("scientificNameWithoutAuthor", ""),
+                    'score': round(top.get("score", 0) * 100, 2),
+                    'imageUrls': image_urls
+                })
+
+            except requests.RequestException:
+                return jsonify({'message': 'Error al identificar la planta'}), 500
+
+    return render_template('identificador_ia.html')
+
+############
 
 # Función para conectar a la base de datos
 def get_connection():
